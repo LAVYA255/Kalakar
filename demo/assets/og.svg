@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <radialGradient id="a" cx="18%" cy="22%" r="70%">
+      <stop offset="0%" stop-color="#6d5cf0" stop-opacity="0.85"/><stop offset="100%" stop-color="#6d5cf0" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="b" cx="84%" cy="12%" r="60%">
+      <stop offset="0%" stop-color="#22d3ee" stop-opacity="0.55"/><stop offset="100%" stop-color="#22d3ee" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="c" cx="70%" cy="92%" r="65%">
+      <stop offset="0%" stop-color="#e879f9" stop-opacity="0.45"/><stop offset="100%" stop-color="#e879f9" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="3"/><feColorMatrix type="saturate" values="0"/></filter>
+  </defs>
+  <rect width="1200" height="630" fill="#0d0b14"/>
+  <rect width="1200" height="630" fill="url(#a)"/>
+  <rect width="1200" height="630" fill="url(#b)"/>
+  <rect width="1200" height="630" fill="url(#c)"/>
+  <rect width="1200" height="630" filter="url(#n)" opacity="0.06"/>
+  <text x="80" y="300" font-family="Georgia,serif" font-size="132" letter-spacing="-5" fill="#f5f3ff">Kalakar</text>
+  <text x="86" y="366" font-family="system-ui,sans-serif" font-size="27" letter-spacing="1" fill="#a9a3c4">Award-grade websites, for any domain.</text>
+  <text x="86" y="418" font-family="system-ui,sans-serif" font-size="19" letter-spacing="3" fill="#6d5cf0">DESIGN SYSTEM · LIQUID GLASS · MOTION SPEC · SOP · QA RUBRIC</text>
+  <rect x="80" y="470" width="184" height="3" fill="#6d5cf0"/>
+</svg>

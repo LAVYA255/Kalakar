@@ -1,0 +1,7 @@
+node_modules/
+package-lock.json
+demo/screenshots/
+
+.backup/
+lh.json
+lh.html

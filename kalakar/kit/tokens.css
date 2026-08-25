@@ -1,0 +1,522 @@
+/* ==========================================================================
+   kalakar/kit/tokens.css
+   Design tokens: type, space, color, radius, depth, motion, layout.
+
+   HOW TO USE
+   1. Import first, before any component CSS.
+   2. Retune --brand-h (hue) and the three ratios at the top. That single
+      change re-themes the entire system.
+   3. Components must reference SEMANTIC tokens only (--surface, --ink,
+      --accent), never primitives (--gray-700). Dark mode depends on it.
+
+   See references/design-system.md for the reasoning behind every value.
+   ========================================================================== */
+
+:root {
+  /* ---------------------------------------------------------------------
+     0. THE DIALS — change these, everything else follows
+     --------------------------------------------------------------------- */
+  --brand-h: 258;          /* accent hue, 0-360 */
+  --brand-c: 0.19;         /* accent chroma at peak, 0-0.37 */
+  --neutral-c: 0.012;      /* how much brand hue bleeds into the grays */
+
+  /* ---------------------------------------------------------------------
+     1. TYPE — two ratios: body 1.2, display 1.414
+     --------------------------------------------------------------------- */
+  --font-display: "Clash Display", "Instrument Serif", Georgia, serif;
+  --font-body: "Satoshi", "Inter", ui-sans-serif, system-ui, -apple-system,
+    "Segoe UI", Roboto, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "Cascadia Code", Menlo, monospace;
+
+  /* body ramp — ratio 1.2 from 16px */
+  --text-xs: 0.694rem;
+  --text-sm: 0.833rem;
+  --text-base: 1rem;
+  --text-md: 1.2rem;
+  --text-lg: 1.44rem;
+
+  /* display ramp — ratio 1.414, fluid. clamp() solved, not guessed.
+     see design-system.md section 2 for the two-point line formula. */
+  --display-1: clamp(1.5rem,  1.220rem + 1.19vw, 2.125rem);
+  --display-2: clamp(1.95rem, 1.487rem + 1.98vw, 2.99rem);
+  --display-3: clamp(2.44rem, 1.686rem + 3.22vw, 4.13rem);
+  --display-4: clamp(3.05rem, 1.812rem + 5.28vw, 5.82rem);
+  --display-5: clamp(3.6rem,  1.443rem + 9.21vw, 8.44rem);
+
+  /* leading — inverse to size */
+  --leading-display: 0.94;
+  --leading-tight: 1.15;
+  --leading-snug: 1.35;
+  --leading-normal: 1.55;
+  --leading-loose: 1.75;
+
+  /* tracking — negative at display, positive at micro */
+  --track-display: -0.035em;
+  --track-tight: -0.02em;
+  --track-normal: 0em;
+  --track-wide: 0.06em;
+  --track-eyebrow: 0.14em;
+
+  --weight-light: 300;
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-bold: 700;
+
+  --measure: 68ch;
+  --measure-narrow: 46ch;
+
+  /* ---------------------------------------------------------------------
+     2. SPACE — 4pt base, non-linear ramp
+     --------------------------------------------------------------------- */
+  --space-0: 0;
+  --space-1: 0.25rem;   /*   4 */
+  --space-2: 0.5rem;    /*   8 */
+  --space-3: 0.75rem;   /*  12 */
+  --space-4: 1rem;      /*  16 */
+  --space-5: 1.5rem;    /*  24 */
+  --space-6: 2rem;      /*  32 */
+  --space-7: 3rem;      /*  48 */
+  --space-8: 4rem;      /*  64 */
+  --space-9: 6rem;      /*  96 */
+  --space-10: 8rem;     /* 128 */
+  --space-11: 12rem;    /* 192 */
+  --space-12: 16rem;    /* 256 */
+
+  --section-y: clamp(4rem, 10vw, 12rem);
+  --gutter: clamp(1rem, 4vw, 3rem);
+
+  /* ---------------------------------------------------------------------
+     3. LAYOUT
+     --------------------------------------------------------------------- */
+  --container-xs: 30rem;
+  --container-sm: 40rem;
+  --container-md: 48rem;
+  --container-lg: 64rem;
+  --container-xl: 80rem;
+  --container-2xl: 90rem;
+
+  --bp-sm: 40rem;
+  --bp-md: 48rem;
+  --bp-lg: 64rem;
+  --bp-xl: 80rem;
+  --bp-2xl: 96rem;
+
+  /* ratios from the canon */
+  --ratio-square: 1;
+  --ratio-portrait: 0.8;      /* 4:5  — editorial default */
+  --ratio-photo: 0.667;       /* 2:3  */
+  --ratio-landscape: 1.5;     /* 3:2  */
+  --ratio-video: 1.778;       /* 16:9 */
+  --ratio-wide: 2;
+  --ratio-cinema: 2.39;       /* anamorphic */
+  --ratio-golden: 1.618;
+
+  /* ---------------------------------------------------------------------
+     4. COLOR — OKLCH. Perceptually uniform; equal L reads equally light.
+     --------------------------------------------------------------------- */
+
+  /* accent ramp — chroma peaks at 500, decays toward both ends,
+     hue drifts +4 into the darks for realism */
+  --accent-50:  oklch(0.970 0.020 var(--brand-h));
+  --accent-100: oklch(0.940 0.040 var(--brand-h));
+  --accent-200: oklch(0.880 0.080 var(--brand-h));
+  --accent-300: oklch(0.800 0.130 var(--brand-h));
+  --accent-400: oklch(0.710 0.170 var(--brand-h));
+  --accent-500: oklch(0.620 var(--brand-c) var(--brand-h));
+  --accent-600: oklch(0.540 0.180 calc(var(--brand-h) + 2));
+  --accent-700: oklch(0.450 0.150 calc(var(--brand-h) + 3));
+  --accent-800: oklch(0.360 0.110 calc(var(--brand-h) + 4));
+  --accent-900: oklch(0.270 0.070 calc(var(--brand-h) + 4));
+
+  /* tinted neutrals — never pure gray */
+  --gray-0:   oklch(1.000 0 0);
+  --gray-50:  oklch(0.985 0.002 var(--brand-h));
+  --gray-100: oklch(0.965 0.004 var(--brand-h));
+  --gray-200: oklch(0.925 0.006 var(--brand-h));
+  --gray-300: oklch(0.870 0.008 var(--brand-h));
+  --gray-400: oklch(0.740 0.010 var(--brand-h));
+  --gray-500: oklch(0.600 var(--neutral-c) var(--brand-h));
+  --gray-600: oklch(0.500 0.014 var(--brand-h));
+  --gray-700: oklch(0.400 0.014 var(--brand-h));
+  --gray-800: oklch(0.290 0.014 var(--brand-h));
+  --gray-900: oklch(0.210 0.014 var(--brand-h));
+  --gray-950: oklch(0.160 0.014 var(--brand-h));
+  --gray-1000: oklch(0.110 0.012 var(--brand-h));
+
+  /* semantic states — functional, not decorative */
+  --success: oklch(0.62 0.15 150);
+  --warning: oklch(0.75 0.15 78);
+  --danger:  oklch(0.58 0.20 26);
+
+  /* ---- SEMANTIC (light) — components use ONLY these ---- */
+  --surface: var(--gray-50);
+  --surface-raised: var(--gray-0);
+  --surface-sunken: var(--gray-100);
+  --surface-inverse: var(--gray-950);
+
+  --ink: var(--gray-900);
+  --ink-muted: var(--gray-600);
+  --ink-subtle: var(--gray-500);
+  --ink-inverse: var(--gray-50);
+
+  --accent: var(--accent-500);
+  --accent-hover: var(--accent-600);
+  --accent-ink: var(--gray-0);
+  --accent-ghost: color-mix(in oklab, var(--accent) 12%, transparent);
+
+  --hairline: color-mix(in oklab, var(--ink) 12%, transparent);
+  --hairline-strong: color-mix(in oklab, var(--ink) 22%, transparent);
+  --overlay-scrim: color-mix(in oklab, var(--gray-1000) 62%, transparent);
+
+  /* glass tokens — consumed by kit/glass.css */
+  --glass-tint: var(--gray-0);
+  --glass-tint-alpha: 55%;
+  --glass-blur: 18px;
+  --glass-saturate: 180%;
+  --glass-brightness: 0.98;
+  --glass-rim-hot: rgb(255 255 255 / 0.7);
+  --glass-rim-cool: rgb(255 255 255 / 0.14);
+  --glass-border: rgb(255 255 255 / 0.28);
+
+  /* ---------------------------------------------------------------------
+     5. RADIUS — pick a personality. This system is "soft".
+        For editorial/brutalist, set every value below to 0.
+     --------------------------------------------------------------------- */
+  --radius-none: 0;
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --radius-2xl: 32px;
+  --radius-full: 9999px;
+
+  /* ---------------------------------------------------------------------
+     6. DEPTH — layered shadows, tinted with the brand hue.
+        Light source: TOP-LEFT. Everything on the page must agree.
+     --------------------------------------------------------------------- */
+  --shadow-color: var(--brand-h);
+  --shadow-sm:
+    0 1px 2px -1px oklch(0.16 0.014 var(--shadow-color) / 0.10),
+    0 1px 3px 0    oklch(0.16 0.014 var(--shadow-color) / 0.06);
+  --shadow-md:
+    0 1px 2px -1px  oklch(0.16 0.014 var(--shadow-color) / 0.08),
+    0 4px 8px -2px  oklch(0.16 0.014 var(--shadow-color) / 0.08),
+    0 10px 20px -4px oklch(0.16 0.014 var(--shadow-color) / 0.06);
+  --shadow-lg:
+    0 1px 2px -1px   oklch(0.16 0.014 var(--shadow-color) / 0.06),
+    0 8px 16px -4px  oklch(0.16 0.014 var(--shadow-color) / 0.08),
+    0 24px 48px -12px oklch(0.16 0.014 var(--shadow-color) / 0.12),
+    0 48px 96px -24px oklch(0.16 0.014 var(--shadow-color) / 0.10);
+  --shadow-glow:
+    0 0 0 1px color-mix(in oklab, var(--accent) 30%, transparent),
+    0 8px 32px -8px color-mix(in oklab, var(--accent) 45%, transparent);
+
+  /* ---------------------------------------------------------------------
+     7. MOTION — durations + easings. See references/motion-spec.md
+     --------------------------------------------------------------------- */
+  --dur-1: 120ms;
+  --dur-2: 180ms;
+  --dur-3: 260ms;
+  --dur-4: 340ms;
+  --dur-5: 480ms;
+  --dur-6: 640ms;
+  --dur-7: 900ms;
+  --dur-8: 1400ms;
+
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);          /* the studio ease */
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+  --ease-in: cubic-bezier(0.32, 0, 0.67, 0);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-back: cubic-bezier(0.34, 1.56, 0.64, 1);     /* overshoot */
+  --ease-anticipate: cubic-bezier(0.68, -0.55, 0.27, 1.55);
+
+  /* semantic motion — entrances ease out, exits ease in AND are shorter */
+  --motion-enter: var(--dur-4) var(--ease-out);
+  --motion-exit: var(--dur-3) var(--ease-in);
+  --motion-move: var(--dur-4) var(--ease-in-out);
+  --motion-press: var(--dur-1) var(--ease-out);
+
+  /* ---------------------------------------------------------------------
+     8. Z-INDEX — named layers. Never write 9999 in a component.
+     --------------------------------------------------------------------- */
+  --z-base: 0;
+  --z-raised: 10;
+  --z-sticky: 100;
+  --z-nav: 200;
+  --z-overlay: 300;
+  --z-modal: 400;
+  --z-toast: 500;
+  --z-grain: 8000;
+  --z-cursor: 9000;
+}
+
+/* ==========================================================================
+   DARK MODE — not an inversion.
+   Elevation comes from lightness, not shadow. Chroma drops ~15%.
+   ========================================================================== */
+:root[data-theme="dark"],
+:root:not([data-theme="light"]) {
+  color-scheme: dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --surface: var(--gray-1000);
+    --surface-raised: var(--gray-900);   /* raised = LIGHTER, not shadowed */
+    --surface-sunken: oklch(0.08 0.010 var(--brand-h));
+    --surface-inverse: var(--gray-50);
+
+    --ink: var(--gray-100);
+    --ink-muted: var(--gray-400);
+    --ink-subtle: var(--gray-500);
+    --ink-inverse: var(--gray-950);
+
+    /* lift L, cut C — saturated color halates on dark */
+    --accent: oklch(0.70 calc(var(--brand-c) * 0.85) var(--brand-h));
+    --accent-hover: oklch(0.78 calc(var(--brand-c) * 0.8) var(--brand-h));
+    --accent-ink: var(--gray-1000);
+
+    --hairline: color-mix(in oklab, var(--gray-0) 12%, transparent);
+    --hairline-strong: color-mix(in oklab, var(--gray-0) 22%, transparent);
+
+    --glass-tint: var(--gray-0);
+    --glass-tint-alpha: 9%;
+    --glass-brightness: 1.35;
+    --glass-border: rgb(255 255 255 / 0.14);
+  }
+}
+
+:root[data-theme="dark"] {
+  --surface: var(--gray-1000);
+  --surface-raised: var(--gray-900);
+  --surface-sunken: oklch(0.08 0.010 var(--brand-h));
+  --surface-inverse: var(--gray-50);
+  --ink: var(--gray-100);
+  --ink-muted: var(--gray-400);
+  --ink-subtle: var(--gray-500);
+  --ink-inverse: var(--gray-950);
+  --accent: oklch(0.70 calc(var(--brand-c) * 0.85) var(--brand-h));
+  --accent-hover: oklch(0.78 calc(var(--brand-c) * 0.8) var(--brand-h));
+  --accent-ink: var(--gray-1000);
+  --hairline: color-mix(in oklab, var(--gray-0) 12%, transparent);
+  --hairline-strong: color-mix(in oklab, var(--gray-0) 22%, transparent);
+  --glass-tint: var(--gray-0);
+  --glass-tint-alpha: 9%;
+  --glass-brightness: 1.35;
+  --glass-border: rgb(255 255 255 / 0.14);
+}
+
+/* ==========================================================================
+   RESET — modern, minimal, opinionated where it matters
+   ========================================================================== */
+*, *::before, *::after { box-sizing: border-box; }
+
+* { margin: 0; }
+
+html {
+  -webkit-text-size-adjust: 100%;
+  -moz-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  scroll-behavior: smooth;
+  /* offset anchors so a fixed nav does not cover the target */
+  scroll-padding-top: var(--space-9);
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  min-height: 100dvh;              /* dvh, not vh — iOS address bar */
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  line-height: var(--leading-normal);
+  color: var(--ink);
+  background: var(--surface);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  font-synthesis: none;
+}
+
+img, picture, video, canvas, svg { display: block; max-width: 100%; }
+img, video { height: auto; }
+
+input, button, textarea, select { font: inherit; color: inherit; }
+
+p, h1, h2, h3, h4, h5, h6 { overflow-wrap: break-word; }
+
+/* display type: tight leading, negative tracking. The two rules that
+   matter most in this entire file. */
+h1, h2, h3, .display {
+  font-family: var(--font-display);
+  font-weight: var(--weight-medium);
+  line-height: var(--leading-display);
+  letter-spacing: var(--track-display);
+  text-wrap: balance;
+}
+h4, h5, h6 {
+  line-height: var(--leading-tight);
+  letter-spacing: var(--track-tight);
+  text-wrap: balance;
+}
+p { text-wrap: pretty; }   /* kills orphans without breaking measure */
+
+/* headings own the thing below them — asymmetric margins, always */
+:is(h1, h2, h3, h4) { margin-block: 0; }
+:is(h2, h3, h4) + p { margin-block-start: var(--space-4); }
+
+a { color: inherit; text-decoration-thickness: 1px; text-underline-offset: 0.18em; }
+
+ul[role="list"], ol[role="list"] { list-style: none; padding: 0; }
+
+/* optical trim where supported — kills the bottom-heavy look in boxes */
+@supports (text-box: trim-both cap alphabetic) {
+  h1, h2, h3, .display { text-box: trim-both cap alphabetic; }
+}
+
+::selection {
+  background: color-mix(in oklab, var(--accent) 85%, transparent);
+  color: var(--accent-ink);
+}
+
+/* focus-visible, never focus. Offset is what makes it look designed. */
+:where(a, button, [role="button"], input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: var(--radius-sm);
+}
+
+/* ==========================================================================
+   LAYOUT PRIMITIVES
+   ========================================================================== */
+.container {
+  width: 100%;
+  max-width: var(--container-2xl);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+.container--lg { max-width: var(--container-lg); }
+.container--md { max-width: var(--container-md); }
+
+.grid-12 {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: var(--gutter);
+}
+@media (max-width: 48rem) {
+  .grid-12 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+
+.section { padding-block: var(--section-y); }
+
+.prose { max-width: var(--measure); }
+.prose p + p { margin-block-start: 1em; }
+
+.eyebrow {
+  font-size: var(--text-xs);
+  letter-spacing: var(--track-eyebrow);
+  text-transform: uppercase;
+  font-weight: var(--weight-medium);
+  color: var(--ink-muted);
+  /* uppercase has no descenders — nudge the optical baseline */
+  padding-block-end: 1px;
+}
+
+.stack > * + * { margin-block-start: var(--flow, var(--space-4)); }
+
+.visually-hidden {
+  position: absolute; width: 1px; height: 1px;
+  padding: 0; margin: -1px; overflow: hidden;
+  clip-path: inset(50%); white-space: nowrap; border: 0;
+}
+
+.skip-link {
+  position: absolute; top: var(--space-3); left: var(--space-3);
+  z-index: var(--z-toast);
+  padding: var(--space-3) var(--space-5);
+  background: var(--surface-raised); color: var(--ink);
+  border-radius: var(--radius-md); box-shadow: var(--shadow-md);
+  transform: translateY(-200%);
+  transition: transform var(--motion-enter);
+}
+.skip-link:focus-visible { transform: translateY(0); }
+
+/* ==========================================================================
+   REVEAL PRIMITIVE — one implementation for every reveal on the site.
+   JS adds .is-revealed via IntersectionObserver (kit/motion.js).
+   CRITICAL: the no-JS and reduced-motion states must both be VISIBLE.
+   ========================================================================== */
+[data-reveal] { opacity: 1; }
+
+.js:not(.reduced-motion) [data-reveal] {
+  opacity: 0;
+  transform: translate3d(0, var(--reveal-y, 24px), 0);
+  transition:
+    opacity var(--dur-6) var(--ease-out) var(--reveal-delay, 0ms),
+    transform var(--dur-6) var(--ease-out) var(--reveal-delay, 0ms);
+  will-change: transform, opacity;
+}
+.js:not(.reduced-motion) [data-reveal].is-revealed {
+  opacity: 1;
+  transform: none;
+  will-change: auto;
+}
+
+/* line-mask reveal — the canonical headline entrance */
+.line-mask { display: block; overflow: hidden; }
+.line-mask > span { display: block; }
+.js:not(.reduced-motion) .line-mask > span {
+  transform: translate3d(0, 110%, 0);   /* 110, not 100 — descenders */
+  transition: transform var(--dur-7) var(--ease-out) var(--reveal-delay, 0ms);
+}
+.js:not(.reduced-motion) [data-reveal].is-revealed .line-mask > span,
+.js:not(.reduced-motion) .line-mask.is-revealed > span { transform: none; }
+
+/* ==========================================================================
+   GRAIN — 5% film grain overlay. Highest impact-per-byte asset there is.
+   Requires the #kalakar-grain filter from kit/filters.svg in the document.
+   ========================================================================== */
+.grain::after {
+  content: "";
+  position: fixed;
+  inset: -50%;                 /* oversize: the jitter never exposes an edge */
+  pointer-events: none;
+  z-index: var(--z-grain);
+  opacity: 0.055;
+  background: #fff;
+  filter: url(#kalakar-grain);
+  mix-blend-mode: overlay;
+  animation: grain-shift 0.9s steps(1) infinite;
+}
+@keyframes grain-shift {
+  0%,100% { transform: translate(0,0) }   10% { transform: translate(-3%,-4%) }
+  20% { transform: translate(-8%,2%) }    30% { transform: translate(3%,-9%) }
+  40% { transform: translate(-3%,7%) }    50% { transform: translate(-8%,3%) }
+  60% { transform: translate(6%,0) }      70% { transform: translate(0,6%) }
+  80% { transform: translate(4%,-3%) }    90% { transform: translate(-4%,4%) }
+}
+
+/* ==========================================================================
+   PREFERENCE GATES — build these in on day one, never retrofit.
+   ========================================================================== */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  /* reveals must END VISIBLE. A blank page is a total failure, and it is
+     the most common reduced-motion bug on design-forward sites. */
+  [data-reveal] { opacity: 1 !important; transform: none !important; }
+  .line-mask > span { transform: none !important; }
+  .grain::after { animation: none; }
+}
+
+@media (prefers-contrast: more) {
+  :root { --hairline: var(--ink); --ink-muted: var(--ink); }
+  .grain::after { display: none; }
+}
+
+@media print {
+  .grain::after, [data-cursor], nav { display: none !important; }
+  * { background: #fff !important; color: #000 !important; box-shadow: none !important; }
+}

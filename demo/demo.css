@@ -1,0 +1,520 @@
+/* ==========================================================================
+   demo/demo.css — page-specific styles for the Kalakar demo.
+   Everything systemic (tokens, glass, reset, reveal, grain) comes from
+   kalakar/kit/. This file only composes.
+
+   Note how few raw values appear below: sizes, spaces, colours, durations and
+   easings are all token references. That is the point of a token layer — if a
+   component hard-codes #6d5cf0 or 340ms, the system has already leaked.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   Brand overrides — this is how you re-theme the kit. Three numbers.
+   -------------------------------------------------------------------------- */
+:root {
+  --brand-h: 274;
+  --brand-c: 0.20;
+  --neutral-c: 0.016;
+
+  --font-display: "Instrument Serif", "Iowan Old Style", Georgia, "Times New Roman", serif;
+  --font-body: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+
+  --glow-a: oklch(0.60 0.22 288);
+  --glow-b: oklch(0.68 0.16 205);
+  --glow-c: oklch(0.62 0.24 336);
+}
+
+/* Force dark: glass needs a backdrop with structure, and this palette is
+   authored for dark. A brand-locked theme is a legitimate choice — see
+   building-blocks.md "Theme patterns". */
+:root {
+  --surface: oklch(0.115 0.018 var(--brand-h));
+  --surface-raised: oklch(0.165 0.020 var(--brand-h));
+  --surface-sunken: oklch(0.085 0.016 var(--brand-h));
+  /* Ink is lighter than a dark theme normally needs because the backdrop is a
+     mesh gradient, not a flat surface — the bright glow regions are the
+     binding constraint. Measured with scripts/contrast.mjs against rendered
+     pixels, not against a computed background-color that does not exist here. */
+  --ink: oklch(0.97 0.008 var(--brand-h));
+  --ink-muted: oklch(0.88 0.016 var(--brand-h));
+  --ink-subtle: oklch(0.80 0.020 var(--brand-h));
+  --accent: oklch(0.72 0.18 var(--brand-h));
+  --accent-hover: oklch(0.80 0.16 var(--brand-h));
+  --accent-ink: oklch(0.13 0.02 var(--brand-h));
+  --hairline: color-mix(in oklab, white 11%, transparent);
+  --hairline-strong: color-mix(in oklab, white 20%, transparent);
+  color-scheme: dark;
+}
+
+body { overflow-x: hidden; }
+
+/* --------------------------------------------------------------------------
+   Backdrop — mesh gradient + dot grid + aurora. Generated, not sourced.
+   Four radial stops at different anchor points, each fading to transparent.
+   The grain overlay from tokens.css sits on top and kills the banding.
+   -------------------------------------------------------------------------- */
+.field {
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  background-color: var(--surface);
+  background-image:
+    radial-gradient(at 16% 18%, color-mix(in oklab, var(--glow-a) 46%, transparent) 0, transparent 52%),
+    radial-gradient(at 84% 8%,  color-mix(in oklab, var(--glow-b) 32%, transparent) 0, transparent 48%),
+    radial-gradient(at 72% 78%, color-mix(in oklab, var(--glow-c) 30%, transparent) 0, transparent 52%),
+    radial-gradient(at 8% 86%,  color-mix(in oklab, var(--glow-b) 22%, transparent) 0, transparent 46%);
+}
+
+/* Slow aurora drift. Transform-only, so it composites; 40s is slow enough to
+   read as atmosphere rather than animation. */
+.field::after {
+  content: "";
+  position: absolute;
+  inset: -30%;
+  background:
+    radial-gradient(closest-side at 30% 40%, color-mix(in oklab, var(--glow-a) 30%, transparent), transparent),
+    radial-gradient(closest-side at 68% 62%, color-mix(in oklab, var(--glow-c) 24%, transparent), transparent);
+  filter: blur(60px);
+  animation: drift 42s var(--ease-in-out) infinite alternate;
+}
+@keyframes drift {
+  0%   { transform: translate3d(-4%, -2%, 0) scale(1); }
+  50%  { transform: translate3d(3%, 4%, 0) scale(1.08); }
+  100% { transform: translate3d(5%, -3%, 0) scale(1.02); }
+}
+@media (prefers-reduced-motion: reduce) { .field::after { animation: none; } }
+
+/* Readability scrim. A mesh gradient is gorgeous and it is also a moving
+   contrast target — the bright lobes push small text under 4.5:1. One flat
+   veil over the whole field lifts every text run at once, which beats lifting
+   a dozen ink tokens until the palette is all near-white. Measured, not
+   guessed: scripts/contrast.mjs. */
+.field-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  /* 34%: at 26% the worst text run measures 4.7:1 — only 0.2 of margin,
+     and the aurora drifts, so the backdrop under any given line changes over
+     time. At 46% the mesh flattens and the glass loses the structured backdrop
+     it needs to read as glass. 34% holds both. */
+  background: color-mix(in oklab, var(--surface) 34%, transparent);
+}
+
+.field-grid {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  color: color-mix(in oklab, white 20%, transparent);
+  background: url("assets/grid.svg") center / cover no-repeat;
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+/* --------------------------------------------------------------------------
+   Scroll progress — driven by --scroll-progress, set on <html> by motion.js
+   -------------------------------------------------------------------------- */
+.progress {
+  position: fixed;
+  inset: 0 0 auto 0;
+  height: 2px;
+  z-index: var(--z-toast);
+  transform-origin: 0 50%;
+  transform: scaleX(var(--scroll-progress, 0));
+  background: linear-gradient(90deg, var(--glow-b), var(--accent), var(--glow-c));
+}
+
+/* --------------------------------------------------------------------------
+   Custom cursor — dot + lagging ring. The lag delta IS the effect.
+   Only on fine pointers; the native cursor is never hidden without a
+   visible replacement.
+   -------------------------------------------------------------------------- */
+.cursor-dot, .cursor-ring {
+  position: fixed;
+  top: 0; left: 0;
+  z-index: var(--z-cursor);
+  pointer-events: none;
+  border-radius: var(--radius-full);
+  will-change: transform;
+  /* parked in the middle of the screen until the pointer moves — hide it */
+  opacity: 0;
+}
+.cursor-dot.is-ready, .cursor-ring.is-ready { opacity: 1; }
+.cursor-dot {
+  width: 6px; height: 6px;
+  background: var(--ink);
+  mix-blend-mode: difference;
+}
+.cursor-ring {
+  display: grid;
+  place-items: center;
+  width: 34px; height: 34px;
+  border: 1px solid color-mix(in oklab, var(--ink) 45%, transparent);
+  font-size: 10px;
+  letter-spacing: var(--track-wide);
+  text-transform: uppercase;
+  white-space: nowrap;
+  transition:
+    width var(--motion-enter), height var(--motion-enter),
+    background-color var(--motion-enter), border-color var(--motion-enter);
+}
+.cursor-ring.is-active { width: 52px; height: 52px; border-color: var(--accent); }
+.cursor-ring.has-label {
+  width: 92px; height: 92px;
+  background: color-mix(in oklab, var(--accent) 92%, transparent);
+  border-color: transparent;
+  color: var(--accent-ink);
+}
+@media (hover: hover) and (pointer: fine) {
+  .has-custom-cursor, .has-custom-cursor a, .has-custom-cursor button { cursor: none; }
+}
+@media not all and (hover: hover) { .cursor-dot, .cursor-ring { display: none; } }
+@media (prefers-reduced-motion: reduce) { .cursor-dot, .cursor-ring { display: none; } }
+
+/* --------------------------------------------------------------------------
+   Navigation — glass pill, fixed
+   -------------------------------------------------------------------------- */
+.nav {
+  /* the nav sits over arbitrary content, so it darkens rather than brightens
+     — 13px links cannot afford a lifted backdrop */
+  --glass-brightness: 0.78;
+  --glass-tint-alpha: 16%;
+  position: fixed;
+  top: var(--space-4);
+  left: 50%;
+  translate: -50% 0;
+  z-index: var(--z-nav);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-2) var(--space-2) var(--space-5);
+  max-width: calc(100vw - var(--space-6));
+}
+.nav__mark {
+  font-family: var(--font-display);
+  font-size: var(--text-md);
+  letter-spacing: var(--track-tight);
+  margin-inline-end: var(--space-4);
+}
+.nav__links { display: flex; gap: var(--space-1); list-style: none; padding: 0; margin: 0; }
+.nav__links a {
+  display: block;
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-full);
+  font-size: var(--text-sm);
+  color: var(--ink);
+  text-decoration: none;
+  transition: color var(--motion-enter), background-color var(--motion-enter);
+}
+.nav__links a:hover { color: var(--ink); background: color-mix(in oklab, white 8%, transparent); }
+@media (max-width: 52rem) { .nav__links { display: none; } }
+@media (max-width: 30rem) {
+  .nav { padding-left: var(--space-4); gap: var(--space-3); }
+  .nav__mark { margin-inline-end: var(--space-2); font-size: var(--text-base); }
+  .nav .btn { padding: var(--space-2) var(--space-4); font-size: var(--text-xs); }
+}
+
+/* --------------------------------------------------------------------------
+   Buttons
+   -------------------------------------------------------------------------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-6);
+  border: 0;
+  border-radius: var(--radius-full);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--track-normal);
+  text-decoration: none;
+  cursor: pointer;
+  /* a wrapping label turns a pill into a blob — and at mobile it grew the
+     fixed nav tall enough to collide with the hero eyebrow */
+  white-space: nowrap;
+  /* press feedback confirms faster than colour ever does */
+  transition: transform var(--motion-press), background-color var(--motion-enter),
+              box-shadow var(--motion-enter);
+}
+.btn--primary { background: var(--accent); color: var(--accent-ink); box-shadow: var(--shadow-glow); }
+.btn--primary:hover { background: var(--accent-hover); }
+.btn--ghost { background: transparent; color: var(--ink); border: 1px solid var(--hairline-strong); }
+.btn--ghost:hover { border-color: var(--ink); }
+.btn:active { transform: scale(0.97); }
+
+/* --------------------------------------------------------------------------
+   Hero — the signature moment.
+   Asymmetric golden split (1fr : 1.618fr) rather than 50/50: symmetry is a
+   stalemate, asymmetry creates a focal point. See design-system.md §4.
+   -------------------------------------------------------------------------- */
+.hero {
+  min-height: 100svh;
+  display: grid;
+  align-content: center;
+  padding-block: clamp(6rem, 12vh, 9rem) var(--section-y);
+}
+.hero__inner { display: grid; grid-template-columns: 1.618fr 1fr; gap: var(--space-8); align-items: end; }
+@media (max-width: 62rem) { .hero__inner { grid-template-columns: 1fr; align-items: start; } }
+
+.hero__title {
+  /* Height-aware as well as width-aware. A pure vw clamp overflows a short
+     laptop viewport and pushes the CTA below the fold — min() against vh is
+     what keeps the whole hero composition on screen at 1440x900, which is
+     still the most common desktop size there is. */
+  font-size: clamp(2.75rem, min(7.1vw, 12.5vh), 6.6rem);
+  font-weight: var(--weight-regular);
+  /* display type: tight leading + negative tracking. The two rules that
+     separate award-grade type from default type. */
+  line-height: 0.88;
+  letter-spacing: -0.04em;
+  margin-block: var(--space-4) var(--space-5);
+}
+.hero__title em {
+  font-style: italic;
+  background: linear-gradient(102deg, var(--glow-b), var(--accent) 45%, var(--glow-c));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.hero__lede { max-width: 46ch; color: var(--ink-muted); font-size: var(--text-md); }
+.hero__actions { display: flex; flex-wrap: wrap; gap: var(--space-3); margin-block-start: var(--space-6); }
+
+/* The glass panel that sells the material — it sits over the mesh gradient,
+   which is exactly the condition glass needs. Over flat white it would be a
+   gray box. */
+.hero__panel { align-self: end; --glass-brightness: 1.05; }
+.hero__stat { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-4); }
+.hero__stat + .hero__stat { margin-block-start: var(--space-4); padding-block-start: var(--space-4); border-block-start: 1px solid var(--hairline); }
+.hero__stat dt { font-size: var(--text-sm); color: var(--ink-muted); }
+.hero__stat dd {
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  /* tabular-nums or the width jitters on every frame of the count-up */
+  font-variant-numeric: tabular-nums;
+  margin: 0;
+}
+
+/* --------------------------------------------------------------------------
+   Marquee
+   -------------------------------------------------------------------------- */
+.marquee {
+  overflow: hidden;
+  padding-block: var(--space-6);
+  border-block: 1px solid var(--hairline);
+  mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+}
+.marquee__inner { display: flex; gap: var(--space-7); width: max-content; will-change: transform; }
+.marquee span {
+  font-family: var(--font-display);
+  font-size: var(--display-2);
+  color: var(--ink-subtle);
+  white-space: nowrap;
+}
+.marquee span::after { content: "·"; margin-inline-start: var(--space-7); color: var(--accent); }
+
+/* --------------------------------------------------------------------------
+   Section furniture
+   -------------------------------------------------------------------------- */
+.sec { padding-block: var(--section-y); }
+.sec__head { max-width: 62ch; margin-block-end: var(--space-9); }
+.sec__title { font-size: var(--display-3); margin-block: var(--space-4) var(--space-5); }
+.sec__lede { color: var(--ink-muted); max-width: 58ch; }
+
+/* --------------------------------------------------------------------------
+   Feature grid — asymmetric on purpose. A 12-col grid used as three equal
+   4-col cards is a Bootstrap page; the same grid used as 7/5, 5/7 is
+   editorial. Breaking symmetry is the whole game.
+   -------------------------------------------------------------------------- */
+.features { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: var(--gutter); }
+.feature { grid-column: span 4; }
+.feature--wide { grid-column: span 7; }
+.feature--narrow { grid-column: span 5; }
+@media (max-width: 62rem) {
+  .feature, .feature--wide, .feature--narrow { grid-column: 1 / -1; }
+}
+.feature h3 {
+  font-family: var(--font-body);
+  font-size: var(--text-md);
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--track-tight);
+  margin-block-end: var(--space-3);
+}
+.feature p { color: var(--ink-muted); font-size: var(--text-sm); line-height: var(--leading-snug); }
+.feature__num {
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  color: var(--accent);
+  display: block;
+  margin-block-end: var(--space-4);
+}
+
+/* --------------------------------------------------------------------------
+   Material lab — the side-by-side that makes the difference visible.
+   -------------------------------------------------------------------------- */
+.lab { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr)); gap: var(--space-5); }
+.lab__cell { display: grid; gap: var(--space-3); }
+.lab__swatch {
+  aspect-ratio: var(--ratio-landscape);
+  display: grid;
+  place-items: center;
+  padding: var(--space-5);
+  text-align: center;
+  font-size: var(--text-sm);
+  border-radius: var(--radius-xl);
+}
+.lab__caption { font-size: var(--text-xs); color: var(--ink-subtle); line-height: var(--leading-snug); }
+.lab__caption b { color: var(--ink-muted); font-weight: var(--weight-medium); }
+
+/* The "before" — 2019 glassmorphism, deliberately unadorned so the
+   comparison is honest: blur + tint, no saturation recovery, no asymmetric
+   rim, one flat shadow. */
+.glass-naive {
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  background: rgb(255 255 255 / 0.10);
+  border: 1px solid rgb(255 255 255 / 0.2);
+  box-shadow: 0 4px 6px rgb(0 0 0 / 0.1);
+}
+
+/* --------------------------------------------------------------------------
+   Type specimen — the design system made visible. SOP Phase 2 calls for
+   exactly this before any component work.
+   -------------------------------------------------------------------------- */
+.specimen { display: grid; gap: var(--space-6); }
+.specimen__row {
+  display: grid;
+  grid-template-columns: 8rem 1fr;
+  gap: var(--space-5);
+  align-items: baseline;
+  padding-block-end: var(--space-5);
+  border-block-end: 1px solid var(--hairline);
+}
+@media (max-width: 40rem) { .specimen__row { grid-template-columns: 1fr; gap: var(--space-2); } }
+.specimen__meta {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--ink-muted);
+  line-height: var(--leading-snug);
+}
+.specimen__sample { font-family: var(--font-display); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.ramp { display: flex; flex-wrap: wrap; gap: 2px; margin-block-start: var(--space-5); }
+.ramp__step { flex: 1 1 4rem; height: 4.5rem; display: grid; align-content: end; padding: var(--space-2); }
+.ramp__step span { font-family: var(--font-mono); font-size: 10px; font-weight: 500; }
+
+.space-scale { display: flex; align-items: flex-end; gap: var(--space-3); flex-wrap: wrap; margin-block-start: var(--space-5); }
+.space-scale div { background: color-mix(in oklab, var(--accent) 55%, transparent); width: 100%; }
+.space-scale figure { margin: 0; flex: 0 0 auto; width: 2.2rem; text-align: center; }
+.space-scale figcaption { font-family: var(--font-mono); font-size: 10px; color: var(--ink-muted); margin-block-start: var(--space-2); }
+
+/* --------------------------------------------------------------------------
+   Motion lab — easing curves drawn to scale, plus runnable samples.
+   -------------------------------------------------------------------------- */
+.curves { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(150px, 100%), 1fr)); gap: var(--space-5); }
+.curve { display: grid; gap: var(--space-3); }
+.curve__plot {
+  aspect-ratio: 1;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-lg);
+  background:
+    linear-gradient(to right, var(--hairline) 1px, transparent 1px) 0 0 / 25% 100%,
+    linear-gradient(to bottom, var(--hairline) 1px, transparent 1px) 0 0 / 100% 25%;
+}
+.curve__plot svg { width: 100%; height: 100%; display: block; }
+.curve__label { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--ink-subtle); line-height: var(--leading-snug); }
+.curve__label b { display: block; color: var(--ink); font-family: var(--font-body); font-size: var(--text-sm); margin-block-end: var(--space-1); }
+
+.runner { display: grid; gap: var(--space-4); margin-block-start: var(--space-8); }
+.runner__track {
+  position: relative;
+  height: 40px;
+  border-radius: var(--radius-full);
+  background: color-mix(in oklab, white 6%, transparent);
+  border: 1px solid var(--hairline);
+}
+.runner__dot {
+  position: absolute;
+  top: 50%;
+  left: 4px;
+  width: 30px; height: 30px;
+  translate: 0 -50%;
+  border-radius: var(--radius-full);
+  background: var(--accent);
+  box-shadow: var(--shadow-glow);
+}
+.runner__row { display: grid; grid-template-columns: 11rem 1fr; gap: var(--space-4); align-items: center; }
+@media (max-width: 40rem) { .runner__row { grid-template-columns: 1fr; } }
+.runner__name { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--ink-muted); }
+.is-running .runner__dot { left: calc(100% - 34px); }
+
+/* --------------------------------------------------------------------------
+   Process / rubric
+   -------------------------------------------------------------------------- */
+.phases { display: grid; gap: 0; margin-block-start: var(--space-7); }
+.phase {
+  display: grid;
+  grid-template-columns: 4.5rem 1fr auto;
+  gap: var(--space-5);
+  align-items: baseline;
+  padding-block: var(--space-5);
+  border-block-start: 1px solid var(--hairline);
+  transition: background-color var(--motion-enter), padding-inline var(--motion-move);
+}
+.phase:hover { background: color-mix(in oklab, white 4%, transparent); padding-inline: var(--space-4); }
+.phase__id { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--accent); }
+.phase__name { font-size: var(--text-md); letter-spacing: var(--track-tight); }
+.phase__note { font-size: var(--text-sm); color: var(--ink-muted); text-align: right; }
+.phase--gate { background: color-mix(in oklab, var(--accent) 9%, transparent); }
+.phase--gate .phase__note { color: var(--accent); }
+@media (max-width: 48rem) {
+  .phase { grid-template-columns: 3rem 1fr; }
+  .phase__note { grid-column: 2; text-align: left; }
+}
+
+.scores { display: grid; gap: var(--space-4); margin-block-start: var(--space-6); }
+.score { display: grid; grid-template-columns: 11rem 1fr 2.5rem; gap: var(--space-4); align-items: center; font-size: var(--text-sm); }
+.score__bar {
+  /* display:block matters — these are <span>s, and an inline element ignores
+     width/height, which silently renders the fill at zero width */
+  display: block;
+  height: 6px;
+  border-radius: var(--radius-full);
+  background: color-mix(in oklab, white 8%, transparent);
+  overflow: hidden;
+}
+.score__fill {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--glow-b), var(--accent));
+  transform-origin: 0 50%;
+  transform: scaleX(0);
+  transition: transform var(--dur-8) var(--ease-out) var(--reveal-delay, 0ms);
+}
+.is-revealed .score__fill { transform: scaleX(var(--v, 0.9)); }
+.score__val { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--ink-muted); text-align: right; font-variant-numeric: tabular-nums; }
+@media (max-width: 40rem) { .score { grid-template-columns: 7rem 1fr 2.5rem; font-size: var(--text-xs); } }
+
+/* --------------------------------------------------------------------------
+   Footer — oversized type signature
+   -------------------------------------------------------------------------- */
+.footer { padding-block: var(--space-10) var(--space-7); border-block-start: 1px solid var(--hairline); }
+.footer__mark {
+  font-family: var(--font-display);
+  font-size: clamp(4rem, 19vw, 20rem);
+  line-height: 0.8;
+  letter-spacing: -0.05em;
+  margin-block-end: var(--space-8);
+  background: linear-gradient(180deg, var(--ink) 20%, transparent 120%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.footer__meta { display: flex; flex-wrap: wrap; gap: var(--space-5); justify-content: space-between; font-size: var(--text-sm); color: var(--ink-subtle); }
+.footer__meta a { color: var(--ink-muted); }
+
+/* utility */
+.u-mono { font-family: var(--font-mono); }
+.u-accent { color: var(--accent); }
+.u-muted { color: var(--ink-muted); }
